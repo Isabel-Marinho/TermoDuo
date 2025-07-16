@@ -6,13 +6,12 @@ public class Jogador {
     protected String nome;
     protected int pontuacao;
     protected Personagem personagemEscolhido;
-    protected ArrayList<Character> letrasAcertadas; // Para o jogo principal
+    protected int letrasAcertadas; // Para o jogo principal
 
     // Para controlar personagens já escolhidos
     private static Map<Integer, Boolean> personagensDisponiveis = new HashMap<>();
 
     static {
-        // Inicializa a disponibilidade de personagens. ID 1 para Sova, 2 para Beatrix, 3 para Lucky.
         personagensDisponiveis.put(1, true); // Sova
         personagensDisponiveis.put(2, true); // Beatrix
         personagensDisponiveis.put(3, true); // Lucky
@@ -21,7 +20,7 @@ public class Jogador {
     public Jogador(String nome) {
         this.nome = nome;
         this.pontuacao = 0;
-        this.letrasAcertadas = new ArrayList<>();
+        this.letrasAcertadas = 0;
     }
 
     public String getNome() {
@@ -38,7 +37,6 @@ public class Jogador {
 
     public boolean setPersonagem(int idPersonagem) {
         if (personagensDisponiveis.getOrDefault(idPersonagem, false)) {
-            // Instancia o personagem específico com base no ID
             switch (idPersonagem) {
                 case 1:
                     this.personagemEscolhido = new Sova(this.nome);
@@ -53,7 +51,7 @@ public class Jogador {
                     System.out.println("Personagem com ID " + idPersonagem + " não existe.");
                     return false;
             }
-            personagensDisponiveis.put(idPersonagem, false); // Marca como indisponível
+            personagensDisponiveis.put(idPersonagem, false); // Marca o personagem como indisponível
             System.out.println(this.nome + " escolheu " + this.personagemEscolhido.getNomePersonagem() + "!");
             this.personagemEscolhido.contarHistoria(); // Apresenta as características e vantagens
             return true;
@@ -82,7 +80,7 @@ public class Jogador {
             if (letrasAcertadas.size() == 0)
                 System.out.println(this.nome + " acertou uma letra");
             else
-                System.out.println(this.nome + " mais uma uma letra");
+                System.out.println(this.nome + " mais uma letra");
         }
     }
 }
