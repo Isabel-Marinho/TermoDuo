@@ -4,15 +4,11 @@ public class Jogo implements InterfaceJogo {
     protected ArrayList<Jogador> jogadores;
     protected String palavraSecreta;
     protected Set<Character> letrasDesbloqueadas;
-    protected boolean jogoTerminado;
     protected Jogador vencedor;
-    protected Scanner scanner;
 
     public Jogo() {
         this.jogadores = new ArrayList<>();
         this.letrasDesbloqueadas = new HashSet<>();
-        this.jogoTerminado = false;
-        this.scanner = new Scanner(System.in);
     }
 
     @Override
@@ -36,7 +32,7 @@ public class Jogo implements InterfaceJogo {
     @Override
     public void jogarTurno(Jogador jogador) {
         jogador.pensarEstrategia();
-        jogador.aplicarEstrategia();
+        jogador.aplicarEstrategia(this.palavraSecreta, this.letrasDesbloqueadas);
     }
 
     @Override
