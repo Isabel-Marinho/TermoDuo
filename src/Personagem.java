@@ -2,10 +2,10 @@ public abstract class Personagem extends Jogador {
     protected String nomePersonagem;
     protected String descricao;
     protected int idade;
-    protected String regraModificada; // Descrição da regra que ele modifica/beneficia
+    protected String regraModificada; // Descrição da regra que o personagem modifica
 
     public Personagem(String nomeJogador, String nomePersonagem, String descricao, int idade, String regraModificada) {
-        super(nomeJogador); // Chama o construtor da superclasse Jogador
+        super(nomeJogador);
         this.nomePersonagem = nomePersonagem;
         this.descricao = descricao;
         this.idade = idade;
