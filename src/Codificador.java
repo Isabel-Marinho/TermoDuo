@@ -11,7 +11,6 @@ public class Codificador extends Minigames {
     private boolean venceuMinigame;
 
     private static final String[] FRASES_PADRAO = {"PROGRAMAR", "DESENVOLVER", "ALGORITMO", "INTELIGENCIA", "ADAPTA", "JAVASCRIPT", "PYTHON", "TECNOLOGIA"};
-    private static final String[] FRASES_SOVA = {"JAVA", "CODE", "BUG", "TESTE", "IDE"}; // Frases menores pro Sova
 
 
     public Codificador(Jogador jogador, Random random) {
@@ -33,13 +32,8 @@ public class Codificador extends Minigames {
     }
 
     private String FraseParaCodificar() {
-        if (jogadorAtual.personagemEscolhido.equals("Sova")) {
-            // A vantagem da Sova é aplicada aqui: uma frase mais curta é selecionada.
-            // O método aplicarVantagem() da Sova apenas descreve essa vantagem.
-            System.out.println("\nEfeito da vantagem de " + jogadorAtual.personagemEscolhido.getNomePersonagem() + " (Sova): Você receberá uma frase menor para codificar!");
-            // Sova também pode 'aplicarVantagem()' aqui se houver alguma lógica de estado na Sova
-            ((Sova)jogadorAtual.personagemEscolhido).aplicarVantagem(); // Chama o método para descrever a vantagem
-            return FRASES_SOVA[random.nextInt(FRASES_SOVA.length)];
+        if ("Sova".equals(jogadorAtual.personagemEscolhido.getTipoPersonagem())) {
+            return jogadorAtual.personagemEscolhido.modificaRegra(); // Chama o modificaRegra da Sova
         } else {
             return FRASES_PADRAO[random.nextInt(FRASES_PADRAO.length)];
         }
@@ -48,13 +42,7 @@ public class Codificador extends Minigames {
     @Override
     public void iniciar() {
         exibirRegras();
-
-        if (jogadorAtual.personagemEscolhido.equals("Sova")) {
-            fraseOriginal = FRASES_SOVA[random.nextInt(FRASES_SOVA.length)];
-            System.out.println("\n" + jogadorAtual.personagemEscolhido.getNomePersonagem() + " (Sova), sua vantagem de ter frases menores para codificar está ativada!");
-        } else {
-            fraseOriginal = FRASES_PADRAO[random.nextInt(FRASES_PADRAO.length)];
-        }
+        this.fraseOriginal = FraseParaCodificar();
 
         do {
             shift = random.nextInt(11) - 5; // Gera um número entre -5 e 5
@@ -103,14 +91,18 @@ public class Codificador extends Minigames {
     private String codificarFraseInterno(String frase, int shift) {
         StringBuilder resultado = new StringBuilder();
         for (char caractere : frase.toCharArray()) {
-            // Verifica se o caractere é uma letra do alfabeto
             if (Character.isLetter(caractere)) {
-                char base = 'A'; // A base para a codificação (assumindo letras maiúsculas)
-                int offset = caractere - base; // Posição numérica da letra (0 para A, 1 para B, etc.)
-
-                // Aplica o deslocamento. O % 26 garante que o resultado fique dentro do alfabeto (0-25).
+                char base = 'A';
+                int offset = caractere - base;
                 int newOffset = (offset + shift) % 26;
-
-                // Correção para resultados negativos do operador módulo em Java.
-                // Ex: (-2 % 26) em Java é -2. Queremos que seja 24 (Z-B = A).
-                if (newOffset <
+                if (newOffset < 0) {
+                    newOffset += 26;
+                }
+                resultado.append((char) (base + newOffset));
+            } else {
+                resultado.append(caractere);
+            }
+        }
+        return resultado.toString();
+    }
+}

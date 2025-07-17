@@ -36,7 +36,21 @@ public class Jogador {
     }
 
     public boolean setPersonagem(int idPersonagem) {
-        if (personagensDisponiveis.getOrDefault(idPersonagem, false)) {
+        try {
+            // Verifica se o personagem existe
+            if (idPersonagem < 1 || idPersonagem > 3) {
+                throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe");
+            }
+
+            if (personagensDisponiveis.containsKey(idPersonagem)) {
+                if (!personagensDisponiveis.get(idPersonagem)) {
+                    throw new IllegalArgumentException("Personagem " + idPersonagem + " já foi escolhido");
+                }
+            } else {
+                throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe");
+            }
+
+            // Cria o personagem
             switch (idPersonagem) {
                 case 1:
                     this.personagemEscolhido = new Sova(this.nome);
@@ -47,16 +61,14 @@ public class Jogador {
                 case 3:
                     this.personagemEscolhido = new Lucky(this.nome);
                     break;
-                default:
-                    System.out.println("Personagem com ID " + idPersonagem + " não existe.");
-                    return false;
             }
-            personagensDisponiveis.put(idPersonagem, false); // Marca o personagem como indisponível
+
             System.out.println(this.nome + " escolheu " + this.personagemEscolhido.getNomePersonagem() + "!");
-            this.personagemEscolhido.contarHistoria(); // Apresenta as características e vantagens
+            this.personagemEscolhido.contarHistoria();
             return true;
-        } else {
-            System.out.println("Personagem com ID " + idPersonagem + " já foi escolhido ou é inválido.");
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
             return false;
         }
     }
