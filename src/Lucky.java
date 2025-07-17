@@ -4,7 +4,9 @@ class Lucky extends Personagem {
     }
 
 
-    public String modificaRegra(){
-        System.out.println(nomePersonagem + ": Sua sorte na Roleta Especial está turbinada!");
+    public void modificaRegra(RoletaEspecial roleta){
+        System.out.println("\n--- VANTAGEM DE " + nomePersonagem.toUpperCase() + " ---");
+        System.out.println("Como " + nomePersonagem + ", sua sorte aumentará na Roleta Especial!");
+        roleta.ajustarProbabilidadesParaLucky(); // Chama o metodo da roleta para ajustar as chances
     }
 }
