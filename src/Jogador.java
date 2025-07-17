@@ -57,6 +57,8 @@ public class Jogador {
                 case 3:
                     this.personagemEscolhido = new Lucky(this.nome);
                     break;
+                default:
+                    throw new IllegalArgumentException("ID de personagem desconhecido.");
             }
 
             personagensDisponiveis.put(idPersonagem, false);
@@ -70,29 +72,82 @@ public class Jogador {
         }
     }
 
-    public int pensarEstrategia() {
-            Scanner tec = new Scanner(System.in);
-            System.out.println("\n--- Escolha um minijogo para jogar neste turno ---");
-            System.out.println("Digite (1) para escolher a Roleta Especial!");
-            System.out.println("Digite (2) para escolher o Codificador!");
-            System.out.println("Digite (3) para escolher o Decifrador!");
-            try {
-                int minijogo = tec.nextInt();
-                if (minijogo < 1 || minijogo > 3) {
-                    System.out.println("Essa opção é inválida, digite apenas '1', '2' ou '3'.");
-                    return -1; // Retorna -1 para mostrar uma escolha que não existe
-                }
-                return minijogo;
-            } catch (InputMismatchException e) {
-                System.out.println("Entrada inválida. Por favor, digite um número.");
-                tec.nextLine(); // Evitar loop infinito
-                return -1; // Retorna -1 para mostrar uma escolha que não existe
-            }
+    public Minigames pensarEstrategia(Scanner scanner, Random random, Set<Character> letrasDesbloqueadasGlobal) {
+        System.out.println("\n--- Escolha um minijogo para jogar neste turno ---");
+        System.out.println("Digite (1) para escolher a Roleta Especial!");
+        System.out.println("Digite (2) para escolher o Codificador!");
+        System.out.println("Digite (3) para escolher o Decifrador!");
+        System.out.print("Sua escolha: ");
+
+        int minijogoEscolhido = -1;
+        try {
+            minijogoEscolhido = scanner.nextInt();
+            scanner.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Entrada inválida. Por favor, digite um número.");
+            scanner.nextLine(); // Consome a entrada inválida
+            return null;
         }
 
+        Minigames minigameAtual = null;
+        char letraParaDecifrador = ' ';
 
-    public void aplicarEstrategia(String palavraSecreta, Set<Character> letrasBloqueadas) {
-        System.out.println(this.nome + " está aplicando sua estratégia...");
+        switch (minijogoEscolhido) {
+            case 1: // Roleta Especial
+                minigameAtual = new RoletaEspecial(this, random);
+                break;
+            case 2: // Codificador
+                minigameAtual = new Codificador(this, random);
+                break;
+            case 3: // Decifrador
+                Set<Character> todasAsLetrasBloqueadas = new TreeSet<>();
+                for (char c = 'A'; c <= 'Z'; c++) {
+                    if (!letrasDesbloqueadasGlobal.contains(c)) {
+                        todasAsLetrasBloqueadas.add(c);
+                    }
+                }
+                boolean letraValida = false;
+                while (!letraValida) {
+                    System.out.println("\n--- Jogo Decifrador ---");
+                    System.out.println("Letras bloqueadas disponíveis para tentar desbloquear: " + todasAsLetrasBloqueadas.toString());
+                    System.out.print("Qual letra você quer tentar desbloquear (A-Z)? ");
+                    String Letra = scanner.nextLine().toUpperCase().trim();
+
+                    if (Letra.length() == 1 && Character.isLetter(Letra.charAt(0))) {
+                        char c = Letra.charAt(0);
+                        if (todasAsLetrasBloqueadas.contains(c)) {
+                            letraParaDecifrador = c;
+                            letraValida = true;
+                        } else if (letrasDesbloqueadasGlobal.contains(c)) {
+                            System.out.println("Erro: A letra '" + c + "' já está desbloqueada globalmente. Por favor, escolha uma letra bloqueada.");
+                        } else {
+                            System.out.println("Erro: A letra '" + c + "' não está na lista de letras bloqueadas disponíveis. Por favor, escolha uma das letras listadas.");
+                        }
+                    } else {
+                        System.out.println("Entrada inválida. Digite apenas uma letra (A-Z).");
+                    }
+                }
+                // Instancia o Decifrador com a letra escolhida pelo jogador
+                minigameAtual = new Decifrador(this, random, letraParaDecifrador);
+                break;
+            default:
+                System.out.println("Opção inválida! Por favor, escolha 1, 2 ou 3.");
+                return null;
+        }
+
+        if (minigameAtual != null) {
+            minigameAtual.iniciar();
+        }
+        return minigameAtual;
+    }
+
+
+    public void aplicarEstrategia(Minigames minigame) {
+        if (minigame != null) {
+            this.adicionarPontos(minigame.getRecompensa());
+            System.out.println(">> " + this.getNome() + " ganhou " + minigame.getRecompensa() + " pontos neste minijogo.");
+            System.out.println(">> Pontuação total de " + this.getNome() + ": " + this.getPontuacao());
+        }
     }
 
     public ArrayList<Character> getLetrasAcertadas() {
@@ -100,12 +155,15 @@ public class Jogador {
     }
 
     public void acertarLetra(char letra) {
-        if (!letrasAcertadas.contains(Character.valueOf(letra))) {
-            letrasAcertadas.add(Character.valueOf(letra));
-            if (letrasAcertadas.size() == 0)
-                System.out.println(this.nome + " acertou uma letra");
-            else
-                System.out.println(this.nome + " mais uma letra");
+        letrasAcertadas.add(Character.valueOf(letra));
+        System.out.println(this.nome + " desbloqueou uma letra!");
+        }
+
+    public void removerLetra(char letra) {
+        if (letrasAcertadas.remove(Character.valueOf(letra))) {
+            System.out.println(this.nome + " perdeu a letra '" + letra + "'!");
+        } else {
+            System.out.println(this.nome + " não tinha a letra '" + letra + "' para perder.");
         }
     }
 }
