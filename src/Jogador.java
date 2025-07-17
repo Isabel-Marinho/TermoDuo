@@ -37,20 +37,11 @@ public class Jogador {
 
     public boolean setPersonagem(int idPersonagem) {
         try {
-            // Verifica se o personagem existe
-            if (idPersonagem < 1 || idPersonagem > 3) {
-                throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe");
+
+            if (!personagensDisponiveis.get(idPersonagem)) {
+                throw new IllegalArgumentException("Personagem já foi escolhido por outro jogador!");
             }
 
-            if (personagensDisponiveis.containsKey(idPersonagem)) {
-                if (!personagensDisponiveis.get(idPersonagem)) {
-                    throw new IllegalArgumentException("Personagem " + idPersonagem + " já foi escolhido");
-                }
-            } else {
-                throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe");
-            }
-
-            // Cria o personagem
             switch (idPersonagem) {
                 case 1:
                     this.personagemEscolhido = new Sova(this.nome);
@@ -61,8 +52,11 @@ public class Jogador {
                 case 3:
                     this.personagemEscolhido = new Lucky(this.nome);
                     break;
+                default:
+                    throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe");
             }
 
+            personagensDisponiveis.put(idPersonagem, false);
             System.out.println(this.nome + " escolheu " + this.personagemEscolhido.getNomePersonagem() + "!");
             this.personagemEscolhido.contarHistoria();
             return true;
@@ -73,8 +67,22 @@ public class Jogador {
         }
     }
 
-    public void pensarEstrategia() { //Jogada no turno
-        System.out.println(this.nome + " está pensando em sua próxima jogada...");
+    public void pensarEstrategia() {
+        try {
+            Scanner tec = new Scanner(System.in);
+            System.out.println("Escolha o minijogo: ");
+            System.out.println("Digite (1) para escolher a Roleta Especial!");
+            System.out.println("Digite (2) para escolher o Codificador!");
+            System.out.println("Digite (3) para escolher o Decifrador!");
+            int minijogo = tec.nextInt();
+
+            if (minijogo < 1 || minijogo > 3) {
+                throw new IllegalArgumentException("Essa opção é inválida, digite apenas '1', '2' ou '3'.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
     }
 
 
