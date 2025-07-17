@@ -16,7 +16,7 @@ public class Decifrador extends Minigames {
         this.random = random;
         this.letraEscolhida = Character.toUpperCase(letra);
         this.scanner = new Scanner(System.in);
-        this.tempoLimite = 30000; // 30 segundos em milissegundos
+        this.tempoLimite = 90000; // 30 segundos em milissegundos
         this.venceuMinigame = false;
 
         determinarDificuldade();

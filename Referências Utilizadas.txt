@@ -1,0 +1,4 @@
+Referências utilizadas para fazer o jogo TermoDuo:
+- https://www.guj.com.br/t/medir-o-tempo-de-execucao-de-um-metodo/34531
+- https://www.guj.com.br/t/switch-e-try-catch/345199
+- https://medium.com/fora-de-assunto/visão-geral-da-uml-e984ccbb1519

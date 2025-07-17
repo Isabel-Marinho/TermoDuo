@@ -1,6 +1,6 @@
 import java.util.Random;
 class Sova extends Personagem {
-    private Random random;
+    private final Random random;
     private static final String[] FRASES_SOVA = {"JAVA", "CODE", "BUG", "TESTE", "IDE"}; // Frases menores pro Sova
 
     public Sova(String nomeJogador) {
