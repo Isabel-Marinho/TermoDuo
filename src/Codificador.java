@@ -3,21 +3,30 @@ import java.util.Scanner;
 
 public class Codificador extends Minigames {
 
-    private Jogador jogadorAtual;
-    private Random random;
+    private final Jogador jogadorAtual;
+    private final Random random;
     private String fraseOriginal;
     private int shift; // Valor de deslocamento para a cifra
     private String fraseCodificadaCorreta;
     private boolean venceuMinigame;
+    private char letraAlvo; // Variável local para armazenar a letra alvo
 
     private static final String[] FRASES_PADRAO = {"PROGRAMAR", "DESENVOLVER", "ALGORITMO", "INTELIGENCIA", "ADAPTA", "JAVASCRIPT", "PYTHON", "TECNOLOGIA"};
-
 
     public Codificador(Jogador jogador, Random random) {
         super("Codificador");
         this.jogadorAtual = jogador;
         this.random = random;
         this.venceuMinigame = false;
+        this.letraAlvo = '\0'; // Inicializa como caractere nulo
+    }
+
+    public void setLetraAlvo(char letra) {
+        this.letraAlvo = letra;
+    }
+
+    public char getLetraAlvo() {
+        return this.letraAlvo;
     }
 
     @Override
@@ -50,17 +59,16 @@ public class Codificador extends Minigames {
         } while (shift == 0);
 
         System.out.println("\n--- DESAFIO: Codificador ---");
+        System.out.println("Tentando desbloquear a letra: '" + this.letraAlvo + "'");
         System.out.println("Frase para codificar: '" + fraseOriginal + "'");
         System.out.println("Instrução: Desloque as letras por " + Math.abs(shift) + " posições " + (shift < 0 ? "para trás" : "para frente"));
 
-        // Calcula a frase codificada correta para comparação
         fraseCodificadaCorreta = codificarFraseInterno(fraseOriginal, shift);
 
         Scanner scanner = new Scanner(System.in);
         System.out.print("Digite sua resposta codificada: ");
         String respostaJogador = "";
         try {
-            // Converte para maiúsculas e remove espaços extras
             respostaJogador = scanner.nextLine().toUpperCase().trim();
         } catch (Exception e) {
             System.out.println("Erro na leitura da sua entrada. O minijogo foi encerrado.");
@@ -69,7 +77,6 @@ public class Codificador extends Minigames {
             return;
         }
 
-        // Verifica a resposta do jogador
         if (respostaJogador.equals(fraseCodificadaCorreta)) {
             System.out.println("\n*** VITÓRIA! Sua codificação está correta! ***");
             this.setRecompensa(75);

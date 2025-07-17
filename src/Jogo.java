@@ -64,7 +64,7 @@ public class Jogo implements InterfaceJogo {
             int a = tec.nextInt();
             tec.nextLine();
             personagemValido2 = jogador2.setPersonagem(a);
-            if (!personagemValido2 == personagemValido1) {
+            if (!personagemValido2) {
                 System.out.println("Escolha inválida. Tente novamente.");
             }
         }
@@ -163,14 +163,11 @@ public class Jogo implements InterfaceJogo {
                 case 2:
                     Minigames minigame = jogador.pensarEstrategia(scanner, letrasDesbloqueadas, palavraSecreta);
                     if (minigame != null) {
-                        boolean venceu = minigame.verificarVitoria();
-                        if (venceu) {
+                        minigame.iniciar();
+                        if (minigame.verificarVitoria()) {
                             char letraGanha = escolherLetraParaDesbloquear();
                             jogador.acertarLetra(letraGanha);
                             System.out.println("✅ Letra desbloqueada: " + letraGanha);
-                            if (jogador.getLetrasAcertadas().size() >= palavraSecreta.length()) {
-                                System.out.println("💡 Dica: Você já pode tentar adivinhar a palavra completa!");
-                            }
                         } else {
                             System.out.println("Não foi dessa vez!");
                         }
