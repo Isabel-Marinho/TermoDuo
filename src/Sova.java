@@ -8,7 +8,6 @@ class Sova extends Personagem {
         this.random = new Random();
     }
 
-    @Override
     public String modificaRegra(){
         System.out.println(nomePersonagem + ": Sua frase para codificar é menor!");
         return FRASES_SOVA[random.nextInt(FRASES_SOVA.length)];

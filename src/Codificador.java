@@ -33,7 +33,8 @@ public class Codificador extends Minigames {
 
     private String FraseParaCodificar() {
         if ("Sova".equals(jogadorAtual.personagemEscolhido.getTipoPersonagem())) {
-            return jogadorAtual.personagemEscolhido.modificaRegra(); // Chama o modificaRegra da Sova
+            Sova sova = (Sova) jogadorAtual.personagemEscolhido;
+            return sova.modificaRegra();
         } else {
             return FRASES_PADRAO[random.nextInt(FRASES_PADRAO.length)];
         }

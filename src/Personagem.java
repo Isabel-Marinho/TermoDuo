@@ -29,6 +29,4 @@ public abstract class Personagem extends Jogador {
         System.out.println("Idade: " + idade);
         System.out.println("Vantagem: " + regraModificada);
     }
-
-    public abstract String modificaRegra();
 }
