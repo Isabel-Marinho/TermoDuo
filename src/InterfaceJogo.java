@@ -7,6 +7,6 @@ interface InterfaceJogo {
 
     static int criarNumeroAleatorio(int limite) {
         Random random = new Random();
-        return random.nextInt(1, 100);
+        return random.nextInt(limite);
     }
 }

@@ -47,6 +47,7 @@ public class RoletaEspecial extends Minigames {
         new java.util.Scanner(System.in).nextLine();
 
         System.out.println("\nGirando a roleta...");
+        SoundManager.playSound("sounds/roleta.wav");
 
         if ("Lucky".equals(jogadorAtual.personagemEscolhido.getTipoPersonagem())) {
             Lucky lucky = (Lucky) jogadorAtual.personagemEscolhido;

@@ -1,9 +1,9 @@
 import java.util.*;
+import java.io.*;
 
 public class Jogo implements InterfaceJogo {
     protected ArrayList<Jogador> jogadores;
     protected String palavraSecreta;
-    protected Set<Character> letrasDesbloqueadas;
     protected Jogador vencedor;
     protected Random random;
     protected Codificador codificador;
@@ -11,7 +11,6 @@ public class Jogo implements InterfaceJogo {
 
     public Jogo() {
         this.jogadores = new ArrayList<>();
-        this.letrasDesbloqueadas = new HashSet<>();
         this.random = new Random();  // Inicializa o Random
         this.codificador = null;
         this.decifrador = null;
@@ -30,6 +29,8 @@ public class Jogo implements InterfaceJogo {
         System.out.println("As letras começam bloqueadas e devem ser desbloqueadas através de minijogos");
         System.out.println("Só pode ser jogado 1 minijogo por turno");
         System.out.println("Vence quem descobrir a palavra primeiro!\n");
+
+        SoundManager.playSound("sounds/start.wav");
 
         System.out.println("PERSONAGENS DISPONÍVEIS:");
         System.out.println("Sova | Especial: Frases menores para codificar");
@@ -76,8 +77,12 @@ public class Jogo implements InterfaceJogo {
 
     public void definirPalavraSecreta(String palavra) {
         this.palavraSecreta = palavra.toUpperCase();
-        this.letrasDesbloqueadas = new HashSet<>();
         System.out.println("Palavra secreta definida: " + palavraSecreta.replaceAll(".", "_"));
+    }
+
+    public static String selecionarPalavraAleatoria(ArrayList<String> palavras) {
+        int indice = InterfaceJogo.criarNumeroAleatorio(palavras.size());
+        return palavras.get(indice).toUpperCase();
     }
 
     public void jogarTurno(Jogador jogador) {
@@ -85,12 +90,16 @@ public class Jogo implements InterfaceJogo {
             System.out.println(jogador.getNome() + " não tem mais tentativas!");
             return;
         }
+        if (jogoAcabou()) {
+            return;
+        }
 
         Scanner scanner = new Scanner(System.in);
         boolean turnoConcluido = false;
 
         while (!turnoConcluido) {
-            System.out.println("\nTentativas restantes: " + jogador.getTentativasRestantes() + "/" + Jogador.MAX_TENTATIVAS);
+            System.out.println("\n======== Turno " + jogador.getNome() + " ========");
+            System.out.println("Tentativas restantes: " + jogador.getTentativasRestantes() + "/" + Jogador.MAX_TENTATIVAS);
             System.out.println("Letras desbloqueadas: " + jogador.getLetrasDesbloqueadasFormatadas());
 
             boolean podeAdivinhar = jogador.getLetrasAcertadas().size() >= palavraSecreta.length();
@@ -111,9 +120,11 @@ public class Jogo implements InterfaceJogo {
 
                         if (tentativa.equals(palavraSecreta)) {
                             jogador.adicionarPontos(500);
-                            jogador.marcarComoVencedor(); // Marca explicitamente
+                            jogador.marcarComoVencedor();
+                            SoundManager.playSound("sounds/win.wav");
                             System.out.println("✅ " + jogador.getNome() + " acertou a palavra e ganhou 500 pontos!");
-                            return; // Sai do turno
+                            jogoAcabou();
+                            return;// Sai do turno
                         } else {
                             jogador.reduzirTentativa();
                             System.out.println("❌ Palavra incorreta! Tentativas restantes: " +
@@ -122,6 +133,7 @@ public class Jogo implements InterfaceJogo {
                             if (!jogador.temTentativas()) {
                                 System.out.println("⛔ " + jogador.getNome() + " ficou sem tentativas!");
                             }
+                            return;
                         }
                     } else {
                         System.out.println("🔒 Você precisa desbloquear mais letras para adivinhar!");
@@ -130,10 +142,10 @@ public class Jogo implements InterfaceJogo {
 
                 case 2:
                     Jogador adversario = (jogador == jogador1) ? jogador2 : jogador1;
-                    Minigames minigame = jogador.pensarEstrategia(scanner, letrasDesbloqueadas, palavraSecreta, adversario);
+                    Minigames minigame = jogador.pensarEstrategia(scanner, jogador.getLetrasDesbloqueadas(), palavraSecreta, adversario);
                     if (minigame != null) {
                         minigame.iniciar();
-                        jogador.aplicarEstrategia(minigame, letrasDesbloqueadas);
+                        jogador.aplicarEstrategia(minigame, jogador.getLetrasDesbloqueadas());
                         turnoConcluido = true;
                     }
                     break;
@@ -165,66 +177,45 @@ public class Jogo implements InterfaceJogo {
     }
 
     public boolean jogoAcabou() {
-        // Verifica vitória por adivinhação da palavra
-        if (jogador1.isVencedor() || jogador2.isVencedor()) {
-            this.vencedor = jogador1.isVencedor() ? jogador1 : jogador2;
+        if (vencedor != null) {
             return true;
         }
 
-        // Verifica vitória por letras desbloqueadas
-        for (Jogador jogador : Arrays.asList(jogador1, jogador2)) {
-            if (jogador.getLetrasAcertadas().size() == palavraSecreta.length()) {
-                jogador.marcarComoVencedor();
-                this.vencedor = jogador;
-                return true;
-            }
+        if (jogador1.isVencedor() || jogador2.isVencedor()) {
+            this.vencedor = jogador1.isVencedor() ? jogador1 : jogador2;
+            System.out.println("\n🏆 Fim do jogo! " + vencedor.getNome() + " venceu!");
+            return true;
         }
 
-        // Verifica fim por tentativas esgotadas
         if (!jogador1.temTentativas() && !jogador2.temTentativas()) {
-            // Critério de desempate
-            int comparacao = Integer.compare(
-                    jogador1.getLetrasAcertadas().size(),
-                    jogador2.getLetrasAcertadas().size()
-            );
-
-            this.vencedor = comparacao > 0 ? jogador1 :
-                    comparacao < 0 ? jogador2 :
-                            jogador1.getPontuacao() >= jogador2.getPontuacao() ? jogador1 : jogador2;
+            this.vencedor = (jogador1.getPontuacao() >= jogador2.getPontuacao()) ? jogador1 : jogador2;
+            System.out.println("\n🏆 Fim do jogo! " + vencedor.getNome() + " venceu por desempate!");
             return true;
         }
 
         return false;
     }
 
-    private char escolherLetraParaDesbloquear() {
-        List<Character> letrasDisponiveis = new ArrayList<>();
-
-        // 1. Coletar letras da palavra secreta não desbloqueadas
-        for (char c : palavraSecreta.toCharArray()) {
-            if (!letrasDesbloqueadas.contains(c)) {
-                letrasDisponiveis.add(c);
-            }
+    public void salvarRanking() {
+        try (FileWriter writer = new FileWriter("ranking.txt", true)) {
+            writer.write("=== RESULTADO DA PARTIDA ===\n");
+            writer.write("Jogador 1: " + jogador1.getNome() + " - Pontos: " + jogador1.getPontuacao() + "\n");
+            writer.write("Jogador 2: " + jogador2.getNome() + " - Pontos: " + jogador2.getPontuacao() + "\n");
+            writer.write("Vencedor: " + (vencedor != null ? vencedor.getNome() : "Empate") + "\n");
+            writer.write("Palavra secreta: " + palavraSecreta + "\n");
+            writer.write("----------------------------\n\n");
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar o ranking: " + e.getMessage());
         }
-
-        if (!letrasDisponiveis.isEmpty()) {
-            char letra = letrasDisponiveis.get(random.nextInt(letrasDisponiveis.size()));
-            letrasDesbloqueadas.add(letra);
-            return letra;
-        }
-        throw new IllegalStateException("Todas as letras já foram desbloqueadas!");
     }
-
-    public Jogador getVencedor() {
-        return this.vencedor;
-    }
-
 
     public void pontuacao() {
-        System.out.println("\nPontuação Final");
-        for (Jogador j : jogadores) {
-            System.out.println(j.getNome() + ": " + j.letrasAcertadas.size() + " letras acertadas");
-        }
+        System.out.println("\n=== PONTUAÇÃO FINAL ===");
+        System.out.println(jogador1.getNome() + ": " + jogador1.getPontuacao() + " pontos");
+        System.out.println(jogador2.getNome() + ": " + jogador2.getPontuacao() + " pontos");
+
+        salvarRanking();
+        System.out.println("Ranking salvo no arquivo ranking.txt");
     }
 
 }

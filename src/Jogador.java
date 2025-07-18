@@ -119,7 +119,7 @@ public class Jogador {
             int opcaoMinijogo = scanner.nextInt();
             scanner.nextLine();
 
-            char letraAlvo = selecionarLetraDisponivel(letrasDesbloqueadasGlobal, palavraSecreta);
+            char letraAlvo = selecionarLetraDisponivel(this, palavraSecreta);
             if (letraAlvo == '\0') {
                 System.out.println("Todas letras já desbloqueadas!");
                 return null;
@@ -143,17 +143,23 @@ public class Jogador {
         }
     }
 
-    private char selecionarLetraDisponivel(Set<Character> letrasDesbloqueadas, String palavraSecreta) {
-        List<Character> disponiveis = new ArrayList<>();
+    private char selecionarLetraDisponivel(Jogador jogador, String palavraSecreta) {
+        Set<Character> letrasPalavra = new HashSet<>();
+        Set<Character> letrasDisponiveis = new HashSet<>();
 
         for (char c : palavraSecreta.toCharArray()) {
-            if (!letrasDesbloqueadas.contains(c)) {
-                disponiveis.add(c);
-            }
+            letrasPalavra.add(c);
         }
 
-        return disponiveis.isEmpty() ? '\0' :
-                disponiveis.get(random.nextInt(disponiveis.size()));
+        letrasDisponiveis.addAll(letrasPalavra);
+        letrasDisponiveis.removeAll(jogador.getLetrasDesbloqueadas());
+
+        if (letrasDisponiveis.isEmpty()) {
+            return '\0';
+        }
+
+        List<Character> listaDisponiveis = new ArrayList<>(letrasDisponiveis);
+        return listaDisponiveis.get(random.nextInt(listaDisponiveis.size()));
     }
 
 
@@ -165,6 +171,7 @@ public class Jogador {
                     char letraGanha = ((Codificador)minigame).getLetraAlvo();
                     letrasDesbloqueadasGlobal.add(letraGanha);
                     this.letrasAcertadas.add(letraGanha);
+                    SoundManager.playSound("sounds/letrarevelada.wav");
                     System.out.println("\n✅ " + this.nome + " ganhou " + minigame.getRecompensa() +
                             " pontos e desbloqueou a letra '" + letraGanha + "'!");
                 }
@@ -172,10 +179,12 @@ public class Jogador {
                     char letraGanha = ((Decifrador)minigame).getLetraAlvo();
                     letrasDesbloqueadasGlobal.add(letraGanha);
                     this.letrasAcertadas.add(letraGanha);
+                    SoundManager.playSound("sounds/letrarevelada.wav");
                     System.out.println("✅ " + this.nome + " ganhou " + minigame.getRecompensa() +
                             " pontos e desbloqueou a letra '" + letraGanha + "'!");
                 } else {
                     // Para minigames que não desbloqueiam letras
+                    SoundManager.playSound("sounds/letrarevelada.wav");
                     System.out.println("\n✅ " + this.nome + " ganhou " + minigame.getRecompensa() + " pontos!");
                 }
             } else {
