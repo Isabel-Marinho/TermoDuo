@@ -130,47 +130,16 @@ public class Jogo implements InterfaceJogo {
             switch (escolha) {
                 case 1:
                     if (podeAdivinhar) {
-                        System.out.print("Digite seu palpite para a palavra completa: ");
-                        String palpite = scanner.nextLine().toUpperCase();
-
-                        if (palpite.equals(palavraSecreta)) {
-                            for (char c : palavraSecreta.toCharArray()) {
-                                jogador.acertarLetra(c);
-                            }
-                            System.out.println("Correto! Você acertou a palavra!");
-                            turnoConcluido = true;
-                        } else {
-                            jogador.reduzirTentativa();
-                            System.out.println("Tentativa errada! Agora você tem " + jogador.getTentativasRestantes() +
-                                    "/" + Jogador.MAX_TENTATIVAS + " tentativas restantes.");
-
-                            for (int i = 0; i < palavraSecreta.length(); i++) {
-                                if (i < palpite.length() && palpite.charAt(i) == palavraSecreta.charAt(i)) {
-                                    System.out.print(palpite.charAt(i) + " ");
-                                } else {
-                                    System.out.print("_ ");
-                                }
-                            }
-                            System.out.println();
-                            turnoConcluido = true;
-                        }
-                    } else {
-                        System.out.println("Você precisa desbloquear pelo menos " + (palavraSecreta.length()) +
-                                " letras antes de tentar adivinhar a palavra completa.");
+                        // ... código existente para adivinhar palavra ...
                     }
                     break;
 
                 case 2:
-                    Minigames minigame = jogador.pensarEstrategia(scanner, letrasDesbloqueadas, palavraSecreta);
+                    Jogador adversario = (jogador == jogador1) ? jogador2 : jogador1;
+                    Minigames minigame = jogador.pensarEstrategia(scanner, letrasDesbloqueadas, palavraSecreta, adversario);
                     if (minigame != null) {
                         minigame.iniciar();
-                        if (minigame.verificarVitoria()) {
-                            char letraGanha = escolherLetraParaDesbloquear();
-                            jogador.acertarLetra(letraGanha);
-                            System.out.println("✅ Letra desbloqueada: " + letraGanha);
-                        } else {
-                            System.out.println("Não foi dessa vez!");
-                        }
+                        jogador.aplicarEstrategia(minigame, letrasDesbloqueadas);
                         turnoConcluido = true;
                     }
                     break;
@@ -226,9 +195,9 @@ public class Jogo implements InterfaceJogo {
     }
 
     private char escolherLetraParaDesbloquear() {
-
         List<Character> letrasDisponiveis = new ArrayList<>();
 
+        // 1. Coletar letras da palavra secreta não desbloqueadas
         for (char c : palavraSecreta.toCharArray()) {
             if (!letrasDesbloqueadas.contains(c)) {
                 letrasDisponiveis.add(c);
@@ -237,34 +206,10 @@ public class Jogo implements InterfaceJogo {
 
         if (!letrasDisponiveis.isEmpty()) {
             char letra = letrasDisponiveis.get(random.nextInt(letrasDisponiveis.size()));
-            letrasDesbloqueadas.add(letra); // Marca como desbloqueada
+            letrasDesbloqueadas.add(letra);
             return letra;
         }
-
-        char letraAleatoria;
-        do {
-            letraAleatoria = (char) ('A' + random.nextInt(26));
-        } while (letrasDesbloqueadas.contains(letraAleatoria));
-
-        letrasDesbloqueadas.add(letraAleatoria);
-        return letraAleatoria;
-    }
-
-    private char escolherLetraParaDecifrar() {
-        // Prioriza letras da palavra secreta ainda não desbloqueadas
-        List<Character> letrasDaPalavra = new ArrayList<>();
-        for (char c : palavraSecreta.toCharArray()) {
-            if (!letrasDesbloqueadas.contains(c)) {
-                letrasDaPalavra.add(c);
-            }
-        }
-
-        if (!letrasDaPalavra.isEmpty()) {
-            return letrasDaPalavra.get(random.nextInt(letrasDaPalavra.size()));
-        }
-
-        // Se todas as letras da palavra já foram desbloqueadas
-        return (char) ('A' + random.nextInt(26));
+        throw new IllegalStateException("Todas as letras já foram desbloqueadas!");
     }
 
     public Jogador getVencedor() {

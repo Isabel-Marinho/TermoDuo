@@ -7,6 +7,7 @@ public class RoletaEspecial extends Minigames {
     public static final String TIRAR_DUAS_LETRAS_ADVERSARIO = "Tirar Duas Letras Adversario";
 
     private Jogador jogadorAtual;
+    private Jogador adversario;
     private Random random;
 
     // Probabilidades padrão (serão ajustadas se for a Lucky)
@@ -17,9 +18,10 @@ public class RoletaEspecial extends Minigames {
 
     private String ultimoResultado;
 
-    public RoletaEspecial(Jogador jogador, Random random) {
+    public RoletaEspecial(Jogador jogador,Jogador adversario, Random random) {
         super("Roleta Especial");
         this.jogadorAtual = jogador;
+        this.adversario = adversario;
         this.random = random;
         this.ultimoResultado = null;
     }
@@ -46,26 +48,52 @@ public class RoletaEspecial extends Minigames {
 
         if ("Lucky".equals(jogadorAtual.personagemEscolhido.getTipoPersonagem())) {
             Lucky lucky = (Lucky) jogadorAtual.personagemEscolhido;
-            lucky.modificaRegra(this); // Lucky alterando a sorte
+            lucky.modificaRegra(this);
         }
 
         this.ultimoResultado = sortearResultado();
         System.out.println("\nResultado da roleta: " + ultimoResultado);
 
+        // Ações baseadas no resultado
         if (ultimoResultado.equals(GANHAR_LETRA_GRATIS)) {
             this.setRecompensa(20);
-            System.out.println("Você ganhou 20 pontos!");
+            System.out.println("Você ganhou 20 pontos e uma letra grátis!");
+            jogadorAtual.acertarLetra(escolherLetraAleatoria());
+
         } else if (ultimoResultado.equals(TIRAR_UMA_LETRA_ADVERSARIO)) {
             this.setRecompensa(45);
             System.out.println("Você ganhou 45 pontos!");
+            removerLetraAdversario(1);
+
         } else if (ultimoResultado.equals(TIRAR_DUAS_LETRAS_ADVERSARIO)) {
             this.setRecompensa(75);
             System.out.println("Você ganhou 75 pontos!");
+            removerLetraAdversario(2);
+
         } else if (ultimoResultado.equals(PERDER_VEZ)) {
             this.setRecompensa(0);
-            System.out.println("Você não ganhou pontos desta vez.");
+            System.out.println("Você perdeu a vez!");
         }
+
         this.setConcluido(true);
+    }
+
+    private void removerLetraAdversario(int quantidade) {
+        for (int i = 0; i < quantidade; i++) {
+            if (!adversario.getLetrasAcertadas().isEmpty()) {
+                char letraRemovida = adversario.getLetrasAcertadas().get(
+                        random.nextInt(adversario.getLetrasAcertadas().size()));
+                adversario.removerLetra(letraRemovida);
+                System.out.println("Letra '" + letraRemovida + "' removida do adversário!");
+            } else {
+                System.out.println("Adversário não tem mais letras para remover!");
+                break;
+            }
+        }
+    }
+
+    private char escolherLetraAleatoria() {
+        return (char) ('A' + random.nextInt(26));
     }
 
     private String sortearResultado() {

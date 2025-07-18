@@ -87,7 +87,7 @@ public class Jogador {
         }
     }
 
-    public Minigames pensarEstrategia(Scanner scanner, Set<Character> letrasDesbloqueadasGlobal, String palavraSecreta) {
+    public Minigames pensarEstrategia(Scanner scanner, Set<Character> letrasDesbloqueadasGlobal, String palavraSecreta, Jogador adversario) {
         boolean todasLetrasDesbloqueadas = true;
         for (char c : palavraSecreta.toCharArray()) {
             if (!letrasDesbloqueadasGlobal.contains(c)) {
@@ -136,7 +136,7 @@ public class Jogador {
                 }
                 return new Decifrador(this, random, letraDec);
             case 3:
-                return new RoletaEspecial(this, random);
+                return new RoletaEspecial(this, adversario, random);
             default:
                 System.out.println("Opção inválida! Por favor, escolha um número entre 1 e 3.");
                 return null; // Retorna null para uma opção de minijogo inválida.
@@ -223,7 +223,7 @@ public class Jogador {
     }
 
     public void removerLetra(char letra) {
-        if (letrasAcertadas.remove(Character.valueOf(letra))) { // Usa Character.valueOf para remover o objeto correto.
+        if (letrasAcertadas.remove(Character.valueOf(letra))) {
             System.out.println("❌ " + this.nome + " perdeu a letra '" + letra + "'!");
         } else {
             System.out.println(this.nome + " não tinha a letra '" + letra + "' para perder.");
