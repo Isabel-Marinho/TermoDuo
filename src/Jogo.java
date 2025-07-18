@@ -74,30 +74,6 @@ public class Jogo implements InterfaceJogo {
         return jogadores;
     }
 
-    public void criarCodificador(Jogador jogador) {
-        this.codificador = new Codificador(jogador, random);
-    }
-
-    public void criarDecifrador(Jogador jogador, char letra) {
-        this.decifrador = new Decifrador(jogador, random, letra);
-    }
-
-    public boolean jogarCodificador() {
-        if (codificador != null) {
-            codificador.iniciar();
-            return codificador.verificarVitoria();
-        }
-        return false;
-    }
-
-    public boolean jogarDecifrador() {
-        if (decifrador != null) {
-            decifrador.iniciar();
-            return decifrador.verificarVitoria();
-        }
-        return false;
-    }
-
     public void definirPalavraSecreta(String palavra) {
         this.palavraSecreta = palavra.toUpperCase();
         this.letrasDesbloqueadas = new HashSet<>();
@@ -117,7 +93,7 @@ public class Jogo implements InterfaceJogo {
             System.out.println("\nTentativas restantes: " + jogador.getTentativasRestantes() + "/" + Jogador.MAX_TENTATIVAS);
             System.out.println("Letras desbloqueadas: " + jogador.getLetrasDesbloqueadasFormatadas());
 
-            boolean podeAdivinhar = jogador.getLetrasAcertadas().size() >= palavraSecreta.length() / 2;
+            boolean podeAdivinhar = jogador.getLetrasAcertadas().size() >= palavraSecreta.length();
 
             System.out.println("1 - " + (podeAdivinhar ? "Tentar adivinhar a palavra" : "Você precisa desbloquear mais letras para adivinhar"));
             System.out.println("2 - Jogar minijogo para desbloquear letras");
@@ -130,7 +106,25 @@ public class Jogo implements InterfaceJogo {
             switch (escolha) {
                 case 1:
                     if (podeAdivinhar) {
-                        // ... código existente para adivinhar palavra ...
+                        System.out.print("Digite sua tentativa: ");
+                        String tentativa = scanner.nextLine().toUpperCase();
+
+                        if (tentativa.equals(palavraSecreta)) {
+                            jogador.adicionarPontos(500);
+                            jogador.marcarComoVencedor(); // Marca explicitamente
+                            System.out.println("✅ " + jogador.getNome() + " acertou a palavra e ganhou 500 pontos!");
+                            return; // Sai do turno
+                        } else {
+                            jogador.reduzirTentativa();
+                            System.out.println("❌ Palavra incorreta! Tentativas restantes: " +
+                                    jogador.getTentativasRestantes());
+
+                            if (!jogador.temTentativas()) {
+                                System.out.println("⛔ " + jogador.getNome() + " ficou sem tentativas!");
+                            }
+                        }
+                    } else {
+                        System.out.println("🔒 Você precisa desbloquear mais letras para adivinhar!");
                     }
                     break;
 
@@ -170,24 +164,33 @@ public class Jogo implements InterfaceJogo {
 
     }
 
-    @Override
     public boolean jogoAcabou() {
-        // Verifica se algum jogador acertou todas as letras
-        for (Jogador jogador : jogadores) {
+        // Verifica vitória por adivinhação da palavra
+        if (jogador1.isVencedor() || jogador2.isVencedor()) {
+            this.vencedor = jogador1.isVencedor() ? jogador1 : jogador2;
+            return true;
+        }
+
+        // Verifica vitória por letras desbloqueadas
+        for (Jogador jogador : Arrays.asList(jogador1, jogador2)) {
             if (jogador.getLetrasAcertadas().size() == palavraSecreta.length()) {
+                jogador.marcarComoVencedor();
                 this.vencedor = jogador;
                 return true;
             }
         }
 
-        // Verifica se ambos esgotaram as tentativas
+        // Verifica fim por tentativas esgotadas
         if (!jogador1.temTentativas() && !jogador2.temTentativas()) {
-            // Define vencedor por quem tem mais letras
-            if (jogador1.getLetrasAcertadas().size() > jogador2.getLetrasAcertadas().size()) {
-                this.vencedor = jogador1;
-            } else if (jogador2.getLetrasAcertadas().size() > jogador1.getLetrasAcertadas().size()) {
-                this.vencedor = jogador2;
-            }
+            // Critério de desempate
+            int comparacao = Integer.compare(
+                    jogador1.getLetrasAcertadas().size(),
+                    jogador2.getLetrasAcertadas().size()
+            );
+
+            this.vencedor = comparacao > 0 ? jogador1 :
+                    comparacao < 0 ? jogador2 :
+                            jogador1.getPontuacao() >= jogador2.getPontuacao() ? jogador1 : jogador2;
             return true;
         }
 
@@ -215,6 +218,7 @@ public class Jogo implements InterfaceJogo {
     public Jogador getVencedor() {
         return this.vencedor;
     }
+
 
     public void pontuacao() {
         System.out.println("\nPontuação Final");

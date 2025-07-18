@@ -9,6 +9,7 @@ public class RoletaEspecial extends Minigames {
     private Jogador jogadorAtual;
     private Jogador adversario;
     private Random random;
+    private char letra;
 
     // Probabilidades padrão (serão ajustadas se for a Lucky)
     private double probGanharLetra = 0.30;
@@ -18,12 +19,13 @@ public class RoletaEspecial extends Minigames {
 
     private String ultimoResultado;
 
-    public RoletaEspecial(Jogador jogador,Jogador adversario, Random random) {
+    public RoletaEspecial(Jogador jogador,Jogador adversario, Random random, char letra) {
         super("Roleta Especial");
         this.jogadorAtual = jogador;
         this.adversario = adversario;
         this.random = random;
         this.ultimoResultado = null;
+        this.letra = letra;
     }
 
     @Override
@@ -58,7 +60,7 @@ public class RoletaEspecial extends Minigames {
         if (ultimoResultado.equals(GANHAR_LETRA_GRATIS)) {
             this.setRecompensa(20);
             System.out.println("Você ganhou 20 pontos e uma letra grátis!");
-            jogadorAtual.acertarLetra(escolherLetraAleatoria());
+            jogadorAtual.acertarLetra(this.letra);
 
         } else if (ultimoResultado.equals(TIRAR_UMA_LETRA_ADVERSARIO)) {
             this.setRecompensa(45);
@@ -90,10 +92,6 @@ public class RoletaEspecial extends Minigames {
                 break;
             }
         }
-    }
-
-    private char escolherLetraAleatoria() {
-        return (char) ('A' + random.nextInt(26));
     }
 
     private String sortearResultado() {

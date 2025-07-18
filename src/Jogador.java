@@ -8,6 +8,8 @@ public class Jogador {
     protected int tentativasRestantes;
     protected static final int MAX_TENTATIVAS = 6;
     protected Random random;
+    private Set<Character> letrasDesbloqueadas;
+    private boolean vencedor = false;
 
     private static Map<Integer, Boolean> personagensDisponiveis = new HashMap<>();
 
@@ -23,6 +25,7 @@ public class Jogador {
         this.letrasAcertadas = new ArrayList<>();
         this.tentativasRestantes = MAX_TENTATIVAS;
         this.random = new Random();
+        this.letrasDesbloqueadas = new HashSet<>();
     }
 
     public void resetTentativas() {
@@ -33,12 +36,24 @@ public class Jogador {
         return tentativasRestantes > 0;
     }
 
+    public boolean isVencedor() {
+        return this.vencedor;
+    }
+
+    public void marcarComoVencedor() {
+        this.vencedor = true;
+    }
+
     public String getNome() {
         return nome;
     }
 
     public int getPontuacao() {
         return pontuacao;
+    }
+
+    public Set<Character> getLetrasDesbloqueadas() {
+        return this.letrasDesbloqueadas;
     }
 
     public void adicionarPontos(int pontos) {
@@ -51,7 +66,6 @@ public class Jogador {
 
     public boolean setPersonagem(int idPersonagem) {
         try {
-            // Verifica se o personagem existe e está disponível.
             if (!personagensDisponiveis.containsKey(idPersonagem) || !personagensDisponiveis.get(idPersonagem)) {
                 if (!personagensDisponiveis.containsKey(idPersonagem)) {
                     throw new IllegalArgumentException("Personagem com ID " + idPersonagem + " não existe!");
@@ -60,7 +74,6 @@ public class Jogador {
                 }
             }
 
-            // Instancia o personagem com base no ID.
             switch (idPersonagem) {
                 case 1:
                     this.personagemEscolhido = new Sova(this.nome);
@@ -75,7 +88,6 @@ public class Jogador {
                     throw new IllegalArgumentException("ID de personagem desconhecido.");
             }
 
-            // Marca o personagem como indisponível após a escolha.
             personagensDisponiveis.put(idPersonagem, false);
             System.out.println(this.nome + " escolheu " + this.personagemEscolhido.getNomePersonagem() + "!");
             this.personagemEscolhido.contarHistoria(); // Exibe a história do personagem.
@@ -88,80 +100,60 @@ public class Jogador {
     }
 
     public Minigames pensarEstrategia(Scanner scanner, Set<Character> letrasDesbloqueadasGlobal, String palavraSecreta, Jogador adversario) {
-        boolean todasLetrasDesbloqueadas = true;
-        for (char c : palavraSecreta.toCharArray()) {
-            if (!letrasDesbloqueadasGlobal.contains(c)) {
-                todasLetrasDesbloqueadas = false;
-                break;
-            }
-        }
+        // Verifica se todas letras já foram desbloqueadas
+        boolean todasLetrasDesbloqueadas = palavraSecreta.chars()
+                .allMatch(c -> letrasDesbloqueadasGlobal.contains((char)c));
 
         if (todasLetrasDesbloqueadas) {
             System.out.println("Parabéns! Você já desbloqueou todas as letras da palavra secreta!");
-            System.out.println("Não há mais letras para desbloquear através dos minijogos Codificador ou Decifrador.");
             return null;
         }
 
-        System.out.println("\nEscolha o minijogo para tentar desbloquear mais letras ou ganhar pontos:");
-        System.out.println("1 - Codificador (Foca em uma letra específica da palavra secreta)");
-        System.out.println("2 - Decifrador (Também foca em uma letra específica da palavra secreta)");
-        System.out.println("3 - Roleta Especial (Chance de ganhar pontos ou bônus, independente das letras)");
+        System.out.println("\nEscolha o minijogo:");
+        System.out.println("1 - Codificador (Foca em uma letra específica)");
+        System.out.println("2 - Decifrador (Foca em uma letra específica)");
+        System.out.println("3 - Roleta Especial (Chance de ganhar pontos ou bônus)");
         System.out.print("Opção: ");
 
-        int opcaoMinijogo;
         try {
-            opcaoMinijogo = scanner.nextInt();
+            int opcaoMinijogo = scanner.nextInt();
             scanner.nextLine();
+
+            char letraAlvo = selecionarLetraDisponivel(letrasDesbloqueadasGlobal, palavraSecreta);
+            if (letraAlvo == '\0') {
+                System.out.println("Todas letras já desbloqueadas!");
+                return null;
+            }
+
+            switch (opcaoMinijogo) {
+                case 1:
+                    return new Codificador(this, random, letraAlvo);
+                case 2:
+                    return new Decifrador(this, random, letraAlvo);
+                case 3:
+                    return new RoletaEspecial(this, adversario, random, letraAlvo);
+                default:
+                    System.out.println("Opção inválida!");
+                    return null;
+            }
         } catch (InputMismatchException e) {
-            System.out.println("Entrada inválida. Por favor, digite um número inteiro entre 1 e 3.");
+            System.out.println("Entrada inválida! Digite um número.");
             scanner.nextLine();
             return null;
-        }
-
-        switch (opcaoMinijogo) {
-            case 1:
-                char letraCod = escolherLetraParaDesbloquear(letrasDesbloqueadasGlobal, palavraSecreta);
-                if (letraCod == '\0') {
-                    System.out.println("Você já desbloqueou todas as letras da palavra principal");
-                    return null;
-                }
-                Codificador codificador = new Codificador(this, random);
-                codificador.setLetraAlvo(letraCod); // Define a letra que o Codificador tentará desbloquear.
-                return codificador;
-            case 2:
-                char letraDec = escolherLetraParaDecifrar(letrasDesbloqueadasGlobal, palavraSecreta);
-                if (letraDec == '\0') {
-                    System.out.println("Você já desbloqueou todas as letras da palavra principal");
-                    return null;
-                }
-                return new Decifrador(this, random, letraDec);
-            case 3:
-                return new RoletaEspecial(this, adversario, random);
-            default:
-                System.out.println("Opção inválida! Por favor, escolha um número entre 1 e 3.");
-                return null; // Retorna null para uma opção de minijogo inválida.
         }
     }
 
-    private char escolherLetraParaDesbloquear(Set<Character> letrasDesbloqueadasGlobal, String palavraSecreta) {
-        List<Character> letrasDisponiveis = new ArrayList<>();
+    private char selecionarLetraDisponivel(Set<Character> letrasDesbloqueadas, String palavraSecreta) {
+        List<Character> disponiveis = new ArrayList<>();
 
         for (char c : palavraSecreta.toCharArray()) {
-            if (!letrasDesbloqueadasGlobal.contains(c)) {
-                letrasDisponiveis.add(c);
+            if (!letrasDesbloqueadas.contains(c)) {
+                disponiveis.add(c);
             }
         }
 
-        if (letrasDisponiveis.isEmpty()) {
-            System.out.println("Todas as letras da palavra secreta já foram desbloqueadas para este tipo de minijogo!");
-            return '\0';
-        }
-
-        return letrasDisponiveis.get(random.nextInt(letrasDisponiveis.size()));
-    }
-
-    private char escolherLetraParaDecifrar(Set<Character> letrasDesbloqueadasGlobal, String palavraSecreta) {
-        return escolherLetraParaDesbloquear(letrasDesbloqueadasGlobal, palavraSecreta);
+        return disponiveis.isEmpty() ? '\0' :
+                disponiveis.get(random.nextInt(disponiveis.size()));
     }
 
 
@@ -173,7 +165,7 @@ public class Jogador {
                     char letraGanha = ((Codificador)minigame).getLetraAlvo();
                     letrasDesbloqueadasGlobal.add(letraGanha);
                     this.letrasAcertadas.add(letraGanha);
-                    System.out.println("✅ " + this.nome + " ganhou " + minigame.getRecompensa() +
+                    System.out.println("\n✅ " + this.nome + " ganhou " + minigame.getRecompensa() +
                             " pontos e desbloqueou a letra '" + letraGanha + "'!");
                 }
                 else if (minigame instanceof Decifrador) {
@@ -184,10 +176,10 @@ public class Jogador {
                             " pontos e desbloqueou a letra '" + letraGanha + "'!");
                 } else {
                     // Para minigames que não desbloqueiam letras
-                    System.out.println("✅ " + this.nome + " ganhou " + minigame.getRecompensa() + " pontos!");
+                    System.out.println("\n✅ " + this.nome + " ganhou " + minigame.getRecompensa() + " pontos!");
                 }
             } else {
-                System.out.println("⚠️ " + this.nome + " não conseguiu completar o minijogo!");
+                System.out.println("\n⚠️ " + this.nome + " não conseguiu completar o minijogo!");
             }
             System.out.println("Pontuação atual: " + this.pontuacao);
         }

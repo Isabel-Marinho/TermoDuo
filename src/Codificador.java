@@ -13,15 +13,11 @@ public class Codificador extends Minigames {
 
     private static final String[] FRASES_PADRAO = {"PROGRAMAR", "DESENVOLVER", "ALGORITMO", "INTELIGENCIA", "ADAPTA", "JAVASCRIPT", "PYTHON", "TECNOLOGIA"};
 
-    public Codificador(Jogador jogador, Random random) {
+    public Codificador(Jogador jogador, Random random, char letra) {
         super("Codificador");
         this.jogadorAtual = jogador;
         this.random = random;
         this.venceuMinigame = false;
-        this.letraAlvo = '\0'; // Inicializa como caractere nulo
-    }
-
-    public void setLetraAlvo(char letra) {
         this.letraAlvo = letra;
     }
 
